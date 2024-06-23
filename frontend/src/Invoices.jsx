@@ -24,14 +24,14 @@ const InvoiceTable = () => {
       try {
         // Get the token from the local storage
         const token = localStorage.getItem('token');
-  
+
         const response = await fetch('http://localhost:8000/api/invoice', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
-  
+
         const data = await response.json();
         // Ensure the 'total' property is always defined
         setInvoices(
@@ -123,21 +123,23 @@ const InvoiceTable = () => {
   };
 
   const handleCheckboxChange = (invoiceId) => {
-    setInvoices((prevInvoices) =>
-      prevInvoices.map((invoice) =>
+    setInvoices((prevInvoices) => {
+      const updatedInvoices = prevInvoices.map((invoice) =>
         invoice.id === invoiceId
           ? { ...invoice, isSelected: !invoice.isSelected }
           : invoice
-      )
-    );
-
-    setSelectedInvoices((prevSelectedInvoices) => {
-      const selectedInvoice = invoices.find((invoice) => invoice.id === invoiceId);
-      if (selectedInvoice.isSelected) {
-        return [...prevSelectedInvoices, selectedInvoice];
-      } else {
-        return prevSelectedInvoices.filter((invoice) => invoice.id !== invoiceId);
-      }
+      );
+  
+      setSelectedInvoices((prevSelectedInvoices) => {
+        const updatedInvoice = updatedInvoices.find((invoice) => invoice.id === invoiceId);
+        if (updatedInvoice.isSelected) {
+          return [...prevSelectedInvoices, updatedInvoice];
+        } else {
+          return prevSelectedInvoices.filter((invoice) => invoice.id !== invoiceId);
+        }
+      });
+  
+      return updatedInvoices;
     });
   };
 
@@ -182,23 +184,6 @@ const InvoiceTable = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {selectedInvoices.length > 0 && (
-        <PrintContextConsumer>        
-            <div ref={componentRef} style={{ width: '70vw', marginTop: '24px' }}>
-              <h2>Selected Invoices</h2>
-              {selectedInvoices.map((invoice) => (
-                <div key={invoice.id}>
-                  <h3>Invoice #{invoice.id}</h3>
-                  <p>Customer Name: {invoice.customer_name}</p>
-                  <p>Items: {invoice.items}</p>
-                  <p>User: {invoice.name}</p>
-                  <p>Total: {invoice.total}</p>
-                </div>
-              ))}
-            </div>        
-        </PrintContextConsumer>
-      )}
     </Box>
   );
 };
