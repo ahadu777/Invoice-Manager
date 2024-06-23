@@ -11,7 +11,11 @@ class InvoiceController extends Controller
 {
     public function index(): JsonResponse
     {
-        $invoices = Invoice::all();
+        $user = auth()->user();
+        $invoices = Invoice::leftjoin('users', 'invoices.user_id', 'users.id')
+        ->where('invoices.user_id',$user->id)
+        ->select('users.name','invoices.*')
+        ->get();
         return response()->json($invoices);
     }
 
