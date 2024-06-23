@@ -18,7 +18,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Button from "@mui/material/Button";
 import ArticleIcon from '@mui/icons-material/Article';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate ,Link} from 'react-router-dom';
 import Invoices from "./Invoices";
 import  { useState,useEffect } from 'react';
 
@@ -193,7 +193,9 @@ export default function MiniDrawer() {
                     justifyContent: "center",
                   }}
                 >
+                  <Link to="/invoices">
                    <ArticleIcon /> 
+                   </Link>
                 </ListItemIcon>
                 <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
               </ListItemButton>

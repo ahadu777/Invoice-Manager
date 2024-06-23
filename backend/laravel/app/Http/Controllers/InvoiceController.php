@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\InvoiceItems;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-
+use Illuminate\Support\Facades\Auth;
 
 class InvoiceController extends Controller
 {
@@ -13,9 +14,29 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $invoices = Invoice::leftjoin('users', 'invoices.user_id', 'users.id')
-        ->where('invoices.user_id',$user->id)
-        ->select('users.name','invoices.*')
-        ->get();
+            ->where('invoices.user_id', $user->id)
+            ->select('users.name', 'invoices.*')
+            ->latest()
+            ->get();
+
+        $invoiceItems = InvoiceItems::whereIn('invoice_id', $invoices->pluck('id'))
+            ->get()
+            ->groupBy('invoice_id')
+            ->map(function ($items, $invoiceId) {
+                return [
+                    'items' => $items->map(function ($item) {
+                        return [
+                            'item' => $item->item,
+                            'amount' => $item->amount,
+                        ];
+                    })->toArray(),
+                ];
+            });
+
+        $invoices->each(function ($invoice) use ($invoiceItems) {
+            $invoice->items = $invoiceItems[$invoice->id]['items'] ?? [];
+        });
+
         return response()->json($invoices);
     }
 
@@ -29,19 +50,30 @@ class InvoiceController extends Controller
     {
         $request->validate([
             'customer_name' => 'required',
-            'items' => 'required',
-            'user_id' => 'required|integer',
+            'items' => 'required|array',
+            'items.*.item' => 'required',
+            'items.*.amount' => 'required|integer|min:1',
         ]);
 
         $invoice = Invoice::create([
             'customer_name' => $request->customer_name,
-            'items' => $request->items,
-            'user_id' => $request->user_id,
+            'total_amount' => 0,
+            'user_id' => Auth::id(),
         ]);
+        $totalAmount = 0;
+        foreach ($request->items as $invoiceItem) {
+            $inv_item = new InvoiceItems();
+            $inv_item->invoice_id = $invoice->id;
+            $inv_item->item = $invoiceItem['item'];
+            $inv_item->amount = $invoiceItem['amount'];
+            $totalAmount += $invoiceItem['amount'];
+            $inv_item->save();
+        }
+
+        $invoice->update(['total_amount' => $totalAmount]);
 
         return response()->json($invoice, 201);
     }
-
     /**
      * Display the specified invoice.
      *

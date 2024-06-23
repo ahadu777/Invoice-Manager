@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { ReactToPrint, PrintContextConsumer } from 'react-to-print';
 import * as XLSX from 'xlsx';
+import Create from './Create';
 
 const InvoiceTable = () => {
   const [invoices, setInvoices] = useState([]);
@@ -37,7 +38,7 @@ const InvoiceTable = () => {
         setInvoices(
           data.map((invoice) => ({
             ...invoice,
-            total: invoice.total || 0,
+            total: invoice.total_amount || 0,
             isSelected: false,
           }))
         );
@@ -92,7 +93,7 @@ const InvoiceTable = () => {
                   <td>${invoice.customer_name}</td>
                   <td>${invoice.items}</td>
                   <td>${invoice.name}</td>
-                  <td>${invoice.total}</td>
+                  <td>${invoice.total_amount}</td>
                 </tr>
               `
                 )
@@ -146,7 +147,8 @@ const InvoiceTable = () => {
   return (
     <Box display="flex" flexDirection="column" alignItems="center" mt={4}>
       <Box mb={2} display="flex" justifyContent="flex-end" width="100%">
-        <Button variant="contained" color="primary" onClick={handlePrint} sx={{ mr: 2 }}>
+        <Create></Create>
+        <Button variant="contained" color="primary" onClick={handlePrint} sx={{ml: 2, mr: 2 }}>
           Print
         </Button>
         <Button variant="contained" color="secondary" onClick={handleExportToExcel}>
@@ -176,9 +178,12 @@ const InvoiceTable = () => {
                 </TableCell>
                 <TableCell>{invoice.id}</TableCell>
                 <TableCell>{invoice.customer_name}</TableCell>
-                <TableCell>{invoice.items}</TableCell>
+                <TableCell>{invoice.items.map((item)=>(
+                    <p>{                   'item '+ item.item + ' ,' + ' price ' + item.amount + '  '}
+                   </p>
+                ))}</TableCell>
                 <TableCell>{invoice.name}</TableCell>
-                <TableCell>{invoice.total}</TableCell>
+                <TableCell>{invoice.total_amount}</TableCell>
               </TableRow>
             ))}
           </TableBody>
