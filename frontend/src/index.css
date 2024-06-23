@@ -21,14 +21,8 @@ a {
 a:hover {
   color: #535bf2;
 }
-
-body {
-  margin: 0 ;
-  display: flex;
-  place-items: start;
-  padding-top: 100px;
-  min-width: 320px;
-  min-height: 100vh;
+body{
+  margin-top: 50px !important;
 }
 
 h1 {

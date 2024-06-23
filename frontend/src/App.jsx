@@ -16,11 +16,11 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import MailIcon from "@mui/icons-material/Mail";
+import Button from "@mui/material/Button";
 import ArticleIcon from '@mui/icons-material/Article';
-import { RouterProvider,createBrowserRouter,Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Invoices from "./Invoices";
-import Customers from "./Customers";
+import  { useState,useEffect } from 'react';
 
 const drawerWidth = 240;
 
@@ -91,6 +91,37 @@ const Drawer = styled(MuiDrawer, {
 export default function MiniDrawer() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const [token, setToken] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Retrieve the token from local storage or session storage
+    setToken(localStorage.getItem('token') || sessionStorage.getItem('token'));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Remove the token from local/session storage
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        setToken(null);
+        navigate('/');
+      } else {
+        console.error('Error during logout:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -100,38 +131,32 @@ export default function MiniDrawer() {
     setOpen(false);
   };
 
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <Invoices />,
-    },
-    {
-      path: "/customers",
-      element: <Customers />,
-    },
-  ]);
+ 
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={{
-              marginRight: 5,
-              ...(open && { display: "none" }),
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Invoice Manager{" "}
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <Toolbar>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          onClick={handleDrawerOpen}
+          edge="start"
+          sx={{
+            marginRight: 5,
+            ...(open && { display: 'none' }),
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          Invoice Manager{' '}
+        </Typography>
+        <Box>
+          <Button color="inherit" onClick={handleLogout}>Log Out</Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
@@ -152,7 +177,7 @@ export default function MiniDrawer() {
          
         </List>
         <List>
-          {["Invoices", "Customers", "Items", "Profile"].map((text, index) => (
+          {["Invoices"].map((text, index) => (
             <ListItem key={text} disablePadding sx={{ display: "block" }}>
               <ListItemButton
                 sx={{
@@ -168,7 +193,7 @@ export default function MiniDrawer() {
                     justifyContent: "center",
                   }}
                 >
-                  {index % 2 === 0 ? <ArticleIcon /> : <MailIcon />}
+                   <ArticleIcon /> 
                 </ListItemIcon>
                 <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
               </ListItemButton>
@@ -176,8 +201,8 @@ export default function MiniDrawer() {
           ))}
         </List>
       </Drawer>
-        <DrawerHeader />      
-        <RouterProvider router={router} />
+        <DrawerHeader />    
+        <Invoices/>  
     </Box>
   );
 }
