@@ -99,10 +99,15 @@ const InvoiceTable = () => {
                 <tr>
                   <td>${invoice.id}</td>
                   <td>${invoice.customer_name}</td>
-                  <td>${invoice.items.map((item)=>(
-                    <p>{'item '+ item.item + ' ,' + ' price ' + item.amount + '  '}
-                   </p>
-                ))}</td>
+                  <td>
+                  ${invoice.items
+                    .map(
+                      (item) => `
+                    <p>Item: ${item.item}, Price: ${item.amount}</p>
+                  `
+                    )
+                    .join('')}
+                  </td>
                   <td>${invoice.name}</td>
                   <td>${invoice.total_amount}</td>
                 </tr>
