@@ -128,8 +128,7 @@ const InvoiceTable = () => {
       const workbook = XLSX.utils.book_new();
   
       const worksheetData = selectedInvoices.flatMap((invoice) => [
-        { Customer: invoice.customer_name, User: invoice.user, Invoice: invoice.invoiceNumber },
-        { Item: 'Item', Amount: 'Amount' },
+        { Customer: invoice.customer_name, User: invoice.name, Invoice: invoice.id },
         ...invoice.items.map((item) => ({
           Item: item.item,
           Amount: item.amount,
