@@ -196,8 +196,7 @@ const InvoiceTable = () => {
       });
   
       if (response.ok) {
-        // Optionally, you can remove the deleted invoice from the invoices list
-        invoices = invoices.filter((invoice) => invoice.id !== selectedInvoice.id);
+       fetchInvoices();
       } else {
         throw new Error('Error deleting invoice');
       }

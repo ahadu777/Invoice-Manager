@@ -120,10 +120,11 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $invoice = Invoice::where('user_id', $user->id)
             ->findOrFail($id);
-        $invoice->invoiceItems()->delete();
+        $invoice_items=InvoiceItems::where('invoice_id', $invoice->id);
+        $invoice_items->delete();
         $invoice->delete();    
         return response()->json([
             'message' => 'Invoice deleted successfully',
-        ]);
+        ],200);
     }
 }
