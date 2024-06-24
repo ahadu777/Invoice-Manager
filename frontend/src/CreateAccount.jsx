@@ -11,6 +11,15 @@ const [name, setName] = useState('');
 
   const handleUserCreate = async () => {
     try {
+        const emailRegex = /\S+@\S+\.\S+/;
+        if(!emailRegex.test(email)){
+            setError("invalid email");
+            return;
+        }
+    if (!(name && emailRegex.test(email) && password)) {
+            setError("please fill valid data in all fields");
+            return;
+        }
       const response = await fetch('http://localhost:8000/api/user', {
         method: 'POST',
         headers: {
@@ -59,6 +68,7 @@ const [name, setName] = useState('');
             onChange={(e) => setName(e.target.value)}
             fullWidth
             margin="normal"
+            required
           />
           <TextField
             label="Email"
@@ -67,6 +77,7 @@ const [name, setName] = useState('');
             onChange={(e) => setEmail(e.target.value)}
             fullWidth
             margin="normal"
+            required
           />
           <TextField
             label="Password"
@@ -76,6 +87,7 @@ const [name, setName] = useState('');
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
             margin="normal"
+            required
           />
           {error && (
             <Typography variant="body1" color="error" align="center" gutterBottom>
