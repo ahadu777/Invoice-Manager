@@ -6,6 +6,7 @@ import { RouterProvider,createBrowserRouter,Link } from 'react-router-dom';
 import Invoices from "./Invoices";
 import Customers from "./Customers";
 import Login from "./Login";
+import CreateAccount from './CreateAccount.jsx';
 
 
 const router = createBrowserRouter([
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/invoices",
     element: <App />,
+  },
+  {
+    path: "/create-account",
+    element: <CreateAccount />,
   },
 ]);
 ReactDOM.createRoot(document.getElementById('root')).render(

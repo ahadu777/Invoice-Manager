@@ -37,6 +37,17 @@ class UserAuthController extends Controller
             ], 401);
         }
     }
+   public function createUser(Request $request){
+    User::create([
+        'name'=>$request->name,
+        'email'=>$request->email,
+        'password'=>$request->password
+    ]);
+    return  response()->json([
+        "message" => "user created successfully"
+    ],201);  
+
+   }
     public function test(){
         return response()->json([
             "message" => "message responsed and with token"

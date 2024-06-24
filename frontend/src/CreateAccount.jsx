@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { Card, CardContent, Typography, TextField, Button, Box } from '@mui/material';
 import { useNavigate,Link } from 'react-router-dom';
 
-export default function Login() {
+export default function CreateAccount() {
+const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleUserCreate = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
+      const response = await fetch('http://localhost:8000/api/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name,email, password }),
       });
 
       if (response.ok) {
@@ -49,8 +50,16 @@ export default function Login() {
       >
         <CardContent>
           <Typography variant="h4" component="h1" align="center" gutterBottom>
-            Login
+            Create Account
           </Typography>
+          <TextField
+            label="Name"
+            variant="outlined"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
           <TextField
             label="Email"
             variant="outlined"
@@ -73,18 +82,9 @@ export default function Login() {
               {error}
             </Typography>
           )}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleLogin}
-            fullWidth
-            sx={{ marginTop: 2 }}
-          >
-            Login
-          </Button>
           <Link to='/create-account'>
-            <Button variant='contained' color='secondary' fullWidth   sx={{ marginTop: 2 }}>
-              Create Account
+            <Button variant='contained' color='secondary' fullWidth   sx={{ marginTop: 2 }} onClick={handleUserCreate}>
+              Submit
             </Button>
           </Link>
         </CardContent>
