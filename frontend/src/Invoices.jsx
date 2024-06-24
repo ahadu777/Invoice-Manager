@@ -18,13 +18,16 @@ import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-
+import Modal from '@mui/material/Modal';
+import TextField from '@mui/material/TextField';
 
 const InvoiceTable = () => {
   const [invoices, setInvoices] = useState([]);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedInvoice, setSelectedInvoice] = React.useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editedInvoice, setEditedInvoice] = useState(null);
 
   const componentRef = useRef(null);
 
@@ -180,25 +183,56 @@ const InvoiceTable = () => {
     setSelectedInvoice(null);
   };
 
-  const handleEdit = (a) => {
-    console.log(a)
+  const handleEdit = (invoiceId) => {
+    const invoice = invoices.find((i) => i.id === invoiceId);
+    setEditedInvoice(invoice);
+    setModalOpen(true);
     handleMenuClose();
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8000/api/invoice/${editedInvoice.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(editedInvoice),
+      });
+
+      if (response.ok) {
+        // await fetchInvoices();
+        setModalOpen(false);
+        setEditedInvoice(null);
+      } else {
+        throw new Error('Error updating invoice');
+      }
+    } catch (error) {
+      console.error('Error updating invoice:', error);
+    }
   };
 
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/invoice/${selectedInvoice.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
   
-      if (response.ok) {
-       fetchInvoices();
-      } else {
-        throw new Error('Error deleting invoice');
+      // Show an alert before deleting
+      if (window.confirm('Are you sure you want to delete this invoice?')) {
+        const response = await fetch(`http://localhost:8000/api/invoice/${selectedInvoice.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+  
+        if (response.ok) {
+          // Fetch invoices again to refresh the page
+          await fetchInvoices();
+        } else {
+          throw new Error('Error deleting invoice');
+        }
       }
     } catch (error) {
       console.error('Error deleting invoice:', error);
@@ -206,6 +240,7 @@ const InvoiceTable = () => {
       handleMenuClose();
     }
   };
+  
   return (
     <Box display="flex" flexDirection="column" alignItems="center" mt={4}>
       <Box mb={2} display="flex" justifyContent="flex-end" width="100%">
@@ -271,8 +306,86 @@ const InvoiceTable = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      {modalOpen && (
+  <Modal
+    open={modalOpen}
+    onClose={() => setModalOpen(false)}
+    aria-labelledby="modal-title"
+    aria-describedby="modal-description"
+  >
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      height="100%"
+    >
+      <Paper
+        style={{
+          padding: '2rem',
+          width: '50vw',
+          maxWidth: '600px',
+        }}
+      >
+        <h2 id="modal-title">Edit Invoice</h2>
+        <div id="modal-description">
+          {/* Add your invoice edit form here */}
+          <TextField
+            label="Customer Name"
+            value={editedInvoice?.customer_name}
+            onChange={(e) =>
+              setEditedInvoice({ ...editedInvoice, customer_name: e.target.value })
+            }
+          />
+          <TextField
+            label="Total Amount"
+            value={editedInvoice?.total_amount}
+            onChange={(e) =>
+              setEditedInvoice({ ...editedInvoice, total_amount: e.target.value })
+            }
+          />
+          <div>
+            <h3>Invoice Items:</h3>
+            {editedInvoice?.items.map((item, index) => (
+              <div key={index}>
+                <TextField sx={{mt: 3}}
+                  label={`Item ${index + 1} Name`}
+                  value={item.item}
+                  onChange={(e) =>
+                    setEditedInvoice({
+                      ...editedInvoice,
+                      items: editedInvoice.items.map((i, i_index) =>
+                        i_index === index ? { ...i, item: e.target.value } : i
+                      ),
+                    })
+                  }
+                />
+                <TextField sx={{mt: 3}}
+                  label={`Item ${index + 1} Price`}
+                  value={item.amount}
+                  onChange={(e) =>
+                    setEditedInvoice({
+                      ...editedInvoice,
+                      items: editedInvoice.items.map((i, i_index) =>
+                        i_index === index ? { ...i, amount: e.target.value } : i
+                      ),
+                    })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+          <Button variant="outlined" color="primary" sx={{ mt: 3 }} onClick={()=>setModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="primary" sx={{ mt: 3,ml:3 }} onClick={handleSaveEdit}>
+            Save
+          </Button>
+        </div>
+      </Paper>
     </Box>
-  );
-};
-
+  </Modal>
+)}
+    </Box>
+  )};
 export default InvoiceTable;

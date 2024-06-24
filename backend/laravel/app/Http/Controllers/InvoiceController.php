@@ -93,21 +93,31 @@ class InvoiceController extends Controller
      * @return JsonResponse
      */
     public function update(Request $request, Invoice $invoice): JsonResponse
-    {
-        $request->validate([
-            'customer_name' => 'required',
-            'items' => 'required',
-            'user_id' => 'required|integer',
-        ]);
+{
+    $request->validate([
+        'customer_name' => 'required',
+        'total_amount'=>'required',
+        'items' => 'required',
+    ]);
 
-        $invoice->update([
-            'customer_name' => $request->customer_name,
-            'items' => $request->items,
-            'user_id' => $request->user_id,
-        ]);
+    $invoice->update([
+        'customer_name' => $request->customer_name,
+        'total_amount' => $request->total_amount,
+    ]);
 
-        return response()->json($invoice);
-    }
+    $items = collect($request->items)->map(function ($item) use ($invoice) {
+        return [
+            'item' => $item['item'],
+            'amount' => $item['amount'],
+            'invoice_id' => $invoice->id,
+        ];
+    });
+
+    InvoiceItems::where('invoice_id', $invoice->id)->delete();
+    InvoiceItems::insert($items->toArray());
+
+    return response()->json(["updated successfully"],200);
+}
 
     /**
      * Remove the specified invoice from storage.
