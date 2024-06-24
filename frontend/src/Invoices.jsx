@@ -14,10 +14,18 @@ import {
 import { ReactToPrint, PrintContextConsumer } from 'react-to-print';
 import * as XLSX from 'xlsx';
 import Create from './Create';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 
 const InvoiceTable = () => {
   const [invoices, setInvoices] = useState([]);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [selectedInvoice, setSelectedInvoice] = React.useState(null);
+
   const componentRef = useRef(null);
 
   useEffect(() => {
@@ -91,7 +99,10 @@ const InvoiceTable = () => {
                 <tr>
                   <td>${invoice.id}</td>
                   <td>${invoice.customer_name}</td>
-                  <td>${invoice.items}</td>
+                  <td>${invoice.items.map((item)=>(
+                    <p>{'item '+ item.item + ' ,' + ' price ' + item.amount + '  '}
+                   </p>
+                ))}</td>
                   <td>${invoice.name}</td>
                   <td>${invoice.total_amount}</td>
                 </tr>
@@ -115,7 +126,18 @@ const InvoiceTable = () => {
   const handleExportToExcel = () => {
     if (selectedInvoices.length > 0) {
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(selectedInvoices);
+  
+      const worksheetData = selectedInvoices.flatMap((invoice) => [
+        { Customer: invoice.customer_name, User: invoice.user, Invoice: invoice.invoiceNumber },
+        { Item: 'Item', Amount: 'Amount' },
+        ...invoice.items.map((item) => ({
+          Item: item.item,
+          Amount: item.amount,
+        })),
+        { '' : '' }, // Add an empty row between invoices
+      ]);
+  
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoices');
       XLSX.writeFile(workbook, 'invoices.xlsx');
     } else {
@@ -144,6 +166,43 @@ const InvoiceTable = () => {
     });
   };
 
+  const handleMenuClick = (event, invoice) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedInvoice(invoice);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedInvoice(null);
+  };
+
+  const handleEdit = (a) => {
+    console.log(a)
+    handleMenuClose();
+  };
+
+  const handleDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8000/api/invoice/${selectedInvoice.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        // Optionally, you can remove the deleted invoice from the invoices list
+        invoices = invoices.filter((invoice) => invoice.id !== selectedInvoice.id);
+      } else {
+        throw new Error('Error deleting invoice');
+      }
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+    } finally {
+      handleMenuClose();
+    }
+  };
   return (
     <Box display="flex" flexDirection="column" alignItems="center" mt={4}>
       <Box mb={2} display="flex" justifyContent="flex-end" width="100%">
@@ -165,11 +224,12 @@ const InvoiceTable = () => {
               <TableCell>Items</TableCell>
               <TableCell>User </TableCell>
               <TableCell>Total</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
+            {invoices.map((invoice,index) => (
+              <TableRow key={index}>
                 <TableCell>
                   <Checkbox
                     checked={invoice.isSelected}
@@ -184,6 +244,25 @@ const InvoiceTable = () => {
                 ))}</TableCell>
                 <TableCell>{invoice.name}</TableCell>
                 <TableCell>{invoice.total_amount}</TableCell>
+                <TableCell>
+                  <IconButton
+                    aria-label="more"
+                    aria-controls="long-menu"
+                    aria-haspopup="true"
+                    onClick={(event) => handleMenuClick(event, invoice)}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                  <Menu
+                    id="long-menu"
+                    anchorEl={anchorEl}
+                    open={selectedInvoice === invoice}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem onClick={() => handleEdit(invoice.id)}>Edit</MenuItem>
+                    <MenuItem onClick={handleDelete}>Delete</MenuItem>
+                  </Menu>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

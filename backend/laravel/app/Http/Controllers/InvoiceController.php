@@ -115,9 +115,15 @@ class InvoiceController extends Controller
      * @param  \App\Models\Invoice  $invoice
      * @return JsonResponse
      */
-    public function destroy(Invoice $invoice): JsonResponse
+    public function destroy($id): JsonResponse
     {
-        $invoice->delete();
-        return response()->json(null, 204);
+        $user = auth()->user();
+        $invoice = Invoice::where('user_id', $user->id)
+            ->findOrFail($id);
+        $invoice->invoiceItems()->delete();
+        $invoice->delete();    
+        return response()->json([
+            'message' => 'Invoice deleted successfully',
+        ]);
     }
 }
