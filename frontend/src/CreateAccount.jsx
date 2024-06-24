@@ -22,7 +22,7 @@ const [name, setName] = useState('');
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
-        navigate('/invoices');
+        navigate('/');
       } else {
         const data = await response.json();
         setError(data.message || 'Invalid credentials');

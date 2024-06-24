@@ -164,7 +164,6 @@ export default function Create() {
               <Typography>{item.amount}</Typography>
             </Box>
           ))}
-          <Typography variant="body1">Total Amount: {totalAmount}</Typography>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
             <Button onClick={handleClose}>Cancel</Button>
             <Button onClick={handleSubmit} variant="contained">
